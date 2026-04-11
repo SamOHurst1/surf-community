@@ -45,16 +45,19 @@ export default function LocationOnboarding() {
     setSelectedLocation(location)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedLocation) {
       alert('Please select a location')
       return
     }
-    // Store location in localStorage
-    localStorage.setItem('onboarding_location', selectedLocation.name)
-    localStorage.setItem('onboarding_location_lat', selectedLocation.lat.toString())
-    localStorage.setItem('onboarding_location_lng', selectedLocation.lng.toString())
+    await fetch('/api/user/onboarding', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        location: { name: selectedLocation.name, lat: selectedLocation.lat, lng: selectedLocation.lng },
+      }),
+    })
     router.push('/onboarding/surf-conditions')
   }
 

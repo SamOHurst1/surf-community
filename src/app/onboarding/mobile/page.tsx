@@ -10,10 +10,13 @@ export default function MobileOnboarding() {
   const [mobile, setMobile] = useState('')
   const router = useRouter()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Store mobile in localStorage
-    localStorage.setItem('onboarding_mobile', mobile)
+    await fetch('/api/user/onboarding', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: mobile }),
+    })
     router.push('/onboarding/age')
   }
 

@@ -38,16 +38,22 @@ export default function BoardSizeOnboarding() {
     return true
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateBoardSize()) {
       return
     }
     
-    const boardSize = `${feet}'${inches.padStart(2, '0')}`
-    localStorage.setItem('onboarding_boardSize', boardSize)
-    localStorage.setItem('onboarding_complete', 'true')
+    await fetch('/api/user/onboarding', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        boardFeet: parseInt(feet),
+        boardInches: parseInt(inches),
+        onboardingComplete: true,
+      }),
+    })
     router.push('/')
   }
 

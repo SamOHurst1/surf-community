@@ -7,24 +7,24 @@ datasource db {
 }
 
 model User {
-  id               String   @id @default(cuid())
-  email            String   @unique
-  name             String?
-  image            String?
-  phone            String?
-  age              Int?
-  abilityLevel     String?  // beginner | intermediate | advanced | expert
-  boardFeet        Int?
-  boardInches      Int?
-  onboardingComplete Boolean @default(false)
-  createdAt        DateTime @default(now())
-
-  locations        UserLocation[]
-  surfConditions   UserSurfCondition[]
-  sentMessages     Message[]  @relation("SentMessages")
-  receivedMessages Message[]  @relation("ReceivedMessages")
-  accounts         Account[]
-  sessions         Session[]
+  id                 String              @id @default(cuid())
+  email              String              @unique
+  emailVerified      DateTime?
+  name               String?
+  image              String?
+  phone              String?
+  age                Int?
+  abilityLevel       String?
+  boardFeet          Int?
+  boardInches        Int?
+  onboardingComplete Boolean             @default(false)
+  createdAt          DateTime            @default(now())
+  accounts           Account[]
+  receivedMessages   Message[]           @relation("ReceivedMessages")
+  sentMessages       Message[]           @relation("SentMessages")
+  sessions           Session[]
+  locations          UserLocation[]
+  surfConditions     UserSurfCondition[]
 }
 
 model UserLocation {
@@ -51,26 +51,24 @@ model Message {
   body       String
   read       Boolean  @default(false)
   createdAt  DateTime @default(now())
-  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
   receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
 }
 
-// NextAuth required models
 model Account {
   id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }

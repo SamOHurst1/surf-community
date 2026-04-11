@@ -28,14 +28,17 @@ export default function SurfConditionsOnboarding() {
     )
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (selectedConditions.length === 0) {
       alert('Please select at least one surf condition')
       return
     }
-    // Store surf conditions in localStorage
-    localStorage.setItem('onboarding_surfConditions', JSON.stringify(selectedConditions))
+    await fetch('/api/user/onboarding', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ surfConditions: selectedConditions }),
+    })
     router.push('/onboarding/ability-level')
   }
 

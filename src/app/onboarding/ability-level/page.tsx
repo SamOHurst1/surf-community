@@ -27,14 +27,17 @@ export default function AbilityLevelOnboarding() {
     }
   ]
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedLevel) {
       alert('Please select your ability level')
       return
     }
-    // Store ability level in localStorage
-    localStorage.setItem('onboarding_abilityLevel', selectedLevel)
+    await fetch('/api/user/onboarding', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ abilityLevel: selectedLevel.toLowerCase() }),
+    })
     router.push('/onboarding/board-size')
   }
 

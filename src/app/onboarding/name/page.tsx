@@ -11,11 +11,13 @@ export default function NameOnboarding() {
   const [lastName, setLastName] = useState('')
   const router = useRouter()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Store name in localStorage
-    localStorage.setItem('onboarding_firstName', firstName)
-    localStorage.setItem('onboarding_lastName', lastName)
+    await fetch('/api/user/onboarding', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: `${firstName} ${lastName}`.trim() }),
+    })
     router.push('/onboarding/mobile')
   }
 

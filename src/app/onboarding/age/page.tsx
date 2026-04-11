@@ -10,10 +10,13 @@ export default function AgeOnboarding() {
   const [age, setAge] = useState('')
   const router = useRouter()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Store age in localStorage
-    localStorage.setItem('onboarding_age', age)
+    await fetch('/api/user/onboarding', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ age: parseInt(age) }),
+    })
     router.push('/onboarding/location')
   }
 
