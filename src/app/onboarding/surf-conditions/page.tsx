@@ -2,84 +2,66 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from "@/components/ui/button"
+import { Button } from '@/components/ui/button'
+import OnboardingShell from '@/components/OnboardingShell'
+
+const conditions = [
+  'Small waves (1-3ft)',
+  'Medium waves (3-6ft)',
+  'Large waves (6ft+)',
+  'Beach breaks',
+  'Point breaks',
+  'Reef breaks',
+  'Clean conditions',
+  'Choppy conditions',
+  'All conditions',
+]
 
 export default function SurfConditionsOnboarding() {
-  const [selectedConditions, setSelectedConditions] = useState<string[]>([])
+  const [selected, setSelected] = useState<string[]>([])
   const router = useRouter()
 
-  const surfConditions = [
-    'Small waves (1-3ft)',
-    'Medium waves (3-6ft)',
-    'Large waves (6ft+)',
-    'Beach breaks',
-    'Point breaks',
-    'Reef breaks',
-    'Clean conditions',
-    'Choppy conditions',
-    'All conditions'
-  ]
-
-  const handleConditionToggle = (condition: string) => {
-    setSelectedConditions(prev => 
-      prev.includes(condition) 
-        ? prev.filter(c => c !== condition)
-        : [...prev, condition]
-    )
-  }
+  const toggle = (c: string) =>
+    setSelected(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (selectedConditions.length === 0) {
-      alert('Please select at least one surf condition')
-      return
-    }
+    if (selected.length === 0) return
     await fetch('/api/user/onboarding', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ surfConditions: selectedConditions }),
+      body: JSON.stringify({ surfConditions: selected }),
     })
     router.push('/onboarding/ability-level')
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="max-w-md w-full bg-card/50 backdrop-blur-sm p-8 rounded-3xl shadow-2xl border border-border/50">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">What conditions do you surf?</h1>
-          <p className="text-muted-foreground">Select all that apply</p>
+    <OnboardingShell step={5} total={7} title="What conditions do you surf?" subtitle="Select all that apply — be honest!">
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="flex flex-wrap gap-2.5">
+          {conditions.map(c => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => toggle(c)}
+              className={`px-4 py-2.5 rounded-full text-sm font-medium border transition-all duration-200 ${
+                selected.includes(c)
+                  ? 'bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20'
+                  : 'bg-secondary text-muted-foreground border-border hover:border-primary/40 hover:text-foreground'
+              }`}
+            >
+              {c}
+            </button>
+          ))}
         </div>
-        
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-muted-foreground">Step 5 of 7</span>
-            <span className="text-sm text-muted-foreground">Surf Conditions</span>
-          </div>
-          <div className="w-full bg-secondary rounded-full h-2">
-            <div className="bg-primary h-2 rounded-full" style={{ width: '71.4%' }}></div>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            {surfConditions.map((condition) => (
-              <button
-                key={condition}
-                type="button"
-                onClick={() => handleConditionToggle(condition)}
-                className={`w-full p-3 text-left rounded-lg border transition-colors ${
-                  selectedConditions.includes(condition)
-                    ? 'bg-primary/20 border-primary text-foreground'
-                    : 'bg-card/30 border-border hover:border-primary/50 text-foreground'
-                }`}
-              >
-                {condition}
-              </button>
-            ))}
-          </div>
-          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" style={{ padding: '8px 32px' }}>Continue</Button>
-        </form>
-      </div>
-    </div>
+        <Button
+          type="submit"
+          disabled={selected.length === 0}
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2.5 rounded-xl disabled:opacity-40"
+        >
+          Continue
+        </Button>
+      </form>
+    </OnboardingShell>
   )
-} 
+}

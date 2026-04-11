@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-config'
 import { prisma } from '@/lib/prisma'
 
-export default async function OnboardingPage() {
+export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.id) {
@@ -15,9 +15,9 @@ export default async function OnboardingPage() {
     select: { onboardingComplete: true },
   })
 
-  if (user?.onboardingComplete) {
-    redirect('/')
+  if (!user?.onboardingComplete) {
+    redirect('/onboarding')
   }
 
-  redirect('/onboarding/name')
+  return <>{children}</>
 }
