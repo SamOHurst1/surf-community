@@ -13,6 +13,7 @@ interface Surfer {
   boardFeet: number | null
   boardInches: number | null
   surfConditions: string[]
+  surfStatus: string | null
   joinedAt: string
 }
 
@@ -82,6 +83,10 @@ export default function DiscoverPage() {
     }
     return surfers
   })()
+
+  const viewProfile = (surfer: Surfer) => {
+    window.location.href = `/surfers/${surfer.id}`
+  }
 
   const startConversation = (surfer: Surfer) => {
     window.location.href = `/messages?userId=${surfer.id}`
@@ -154,7 +159,7 @@ export default function DiscoverPage() {
                   key={surfer.id}
                   className="card-enter card-glow-hover group rounded-2xl overflow-hidden cursor-pointer border border-border/60 grain"
                   style={{ background: 'linear-gradient(160deg, oklch(0.13 0.022 248) 0%, oklch(0.10 0.02 252) 100%)', animationDelay: `${i * 60}ms` }}
-                  onClick={() => startConversation(surfer)}
+                  onClick={() => viewProfile(surfer)}
                 >
                   {/* Photo / Avatar */}
                   <div className="relative overflow-hidden" style={{ height: i === 0 ? '17rem' : '14rem' }}>
@@ -212,6 +217,16 @@ export default function DiscoverPage() {
 
                   {/* Body */}
                   <div className="p-4 pt-3.5">
+                    {/* Status badge */}
+                    {surfer.surfStatus && (
+                      <div className="flex items-center gap-1.5 mb-3 px-2.5 py-1.5 rounded-lg"
+                           style={{ background: 'oklch(0.76 0.175 192 / 0.08)', border: '1px solid oklch(0.76 0.175 192 / 0.2)' }}>
+                        <span className="w-1.5 h-1.5 rounded-full shrink-0 animate-pulse" style={{ background: 'oklch(0.76 0.175 192)' }} />
+                        <span className="text-[10px] font-[family-name:var(--font-syne)] font-600 truncate" style={{ color: 'oklch(0.76 0.175 192)' }}>
+                          {surfer.surfStatus}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between mb-3.5">
                       <span className="text-xs text-muted-foreground font-300">
                         {board ? `${board} board` : 'Board size unknown'}

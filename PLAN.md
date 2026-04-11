@@ -181,12 +181,13 @@ supabase
 ## Phase 5 — Feature Backlog
 *Agreed features to build, in priority order.*
 
-- [ ] **5.1 Message notification badge** — unread count dot on the Messages tab in the navbar when you have unread messages
-- [ ] **5.2 Edit mobile number** — tap to edit your phone number directly on the profile page
-- [ ] **5.3 Phone visibility toggle** — on/off switch so you control whether other surfers can see your number
-- [ ] **5.4 Multiple profile photos** — upload and manage more than one photo, shown on your discover card
-- [ ] **5.5 Edit surf stats** — edit ability level, board size, surf conditions, and location directly from your profile page
-- [ ] **5.6 Surf status** — set a status on your profile ("Currently surfing", "Going out at 7am Saturday at Carcavelos" etc). Shows as a badge on your discover card
+- [x] **5.1 Message notification badge** — unread count dot on the Messages tab in the navbar when you have unread messages
+- [x] **5.2 Edit mobile number** — tap to edit your phone number directly on the profile page
+- [x] **5.3 Phone visibility toggle** — on/off switch so you control whether other surfers can see your number
+- [x] **5.4 Public surfer profiles** — clicking a surfer card opens their profile at `/surfers/[id]`, showing their stats, conditions, location, and phone (if visible)
+- [ ] **5.5 Multiple profile photos** — upload and manage more than one photo, shown on your discover card (requires Supabase Storage setup — deferred)
+- [x] **5.6 Edit surf stats** — edit ability level, board size, surf conditions, and location directly from your profile page
+- [x] **5.7 Surf status** — set a status on your profile ("Surfing now", "Going out later today", etc). Shows as a live badge on your discover card and public profile
 
 ---
 
@@ -219,4 +220,13 @@ supabase
 
 ## Next Up
 
-Phase 5 feature backlog — start with 5.1 (notification badge), then work down the list.
+- [ ] **6.1 Real-time messages** — add polling (30s interval) or Supabase Realtime subscription so new messages appear without refreshing the conversation
+- [ ] **6.2 Deploy to Vercel** — connect GitHub repo, add all env vars (Supabase, NextAuth, Google Maps, OAuth), set `NEXTAUTH_URL` to production domain
+- [ ] **6.3 Supabase production setup** — enable row-level security (RLS) policies, set up Storage bucket (public read / authenticated write) for profile photos
+- [ ] **6.4 Rotate secrets** — generate strong `NEXTAUTH_SECRET` for production, use separate OAuth app credentials for prod vs. dev
+- [ ] **6.5 Multiple profile photos** — upload and manage photos once Supabase Storage is configured (unblocked by 6.3)
+- [ ] **6.6 Email/password auth** — credential sign-up with bcrypt via NextAuth `CredentialsProvider` (currently Google OAuth only)
+- [ ] **6.7 Expand surf spots** — replace hardcoded spots with a searchable `SurfSpot` DB table, let users pick from it during onboarding and profile edit
+- [ ] **6.8 Fix profile Edit button** — the "Edit" button on the hero card currently does nothing; wire it up or remove it
+- [ ] **6.9 Remove dead file** — delete `src/app/onboarding/mobile/mobile.tsx` (unused duplicate of the mobile onboarding step)
+- [ ] **6.10 Fix `/onboarding/location` map** — Google Maps component not rendering correctly on the location onboarding page, throws errors in the console

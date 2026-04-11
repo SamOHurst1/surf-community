@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Send, ArrowLeft } from 'lucide-react'
+import { Send, ArrowLeft, ExternalLink } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 interface Conversation {
@@ -205,7 +205,13 @@ export default function MessagesPage() {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-[family-name:var(--font-syne)] font-700 text-sm tracking-tight text-foreground">{selected.name}</p>
+                    <a
+                      href={`/surfers/${selected.userId}`}
+                      className="flex items-center gap-1 group"
+                    >
+                      <p className="font-[family-name:var(--font-syne)] font-700 text-sm tracking-tight text-foreground group-hover:text-primary transition-colors">{selected.name}</p>
+                      <ExternalLink className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100" />
+                    </a>
                     <p className="text-[10px] font-[family-name:var(--font-syne)] font-600 tracking-[0.08em] uppercase" style={{ color: 'oklch(0.76 0.175 192)' }}>Surfer</p>
                   </div>
                 </div>

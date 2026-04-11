@@ -18,9 +18,12 @@ export async function GET() {
       id: true,
       name: true,
       image: true,
+      phone: true,
+      phoneVisible: true,
       abilityLevel: true,
       boardFeet: true,
       boardInches: true,
+      surfStatus: true,
       createdAt: true,
       locations: {
         where: { isPrimary: true },
@@ -38,11 +41,13 @@ export async function GET() {
     id:             s.id,
     name:           s.name ?? 'Surfer',
     image:          s.image,
+    phone:          s.phoneVisible ? s.phone : null,
     abilityLevel:   s.abilityLevel ?? '',
     boardFeet:      s.boardFeet,
     boardInches:    s.boardInches,
     location:       s.locations[0]?.name ?? null,
     surfConditions: s.surfConditions.map(c => c.condition),
+    surfStatus:     s.surfStatus,
     joinedAt:       s.createdAt.toISOString(),
   }))
 

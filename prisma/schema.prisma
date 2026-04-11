@@ -18,6 +18,8 @@ model User {
   boardFeet          Int?
   boardInches        Int?
   onboardingComplete Boolean             @default(false)
+  phoneVisible       Boolean             @default(true)
+  surfStatus         String?
   createdAt          DateTime            @default(now())
   accounts           Account[]
   receivedMessages   Message[]           @relation("ReceivedMessages")
