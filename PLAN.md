@@ -178,7 +178,19 @@ supabase
 
 ---
 
-## Phase 5 — Deployment
+## Phase 5 — Feature Backlog
+*Agreed features to build, in priority order.*
+
+- [ ] **5.1 Message notification badge** — unread count dot on the Messages tab in the navbar when you have unread messages
+- [ ] **5.2 Edit mobile number** — tap to edit your phone number directly on the profile page
+- [ ] **5.3 Phone visibility toggle** — on/off switch so you control whether other surfers can see your number
+- [ ] **5.4 Multiple profile photos** — upload and manage more than one photo, shown on your discover card
+- [ ] **5.5 Edit surf stats** — edit ability level, board size, surf conditions, and location directly from your profile page
+- [ ] **5.6 Surf status** — set a status on your profile ("Currently surfing", "Going out at 7am Saturday at Carcavelos" etc). Shows as a badge on your discover card
+
+---
+
+## Phase 6 — Deployment
 
 ### 5.1 Deploy to Vercel
 - Connect GitHub repo to Vercel
@@ -195,11 +207,16 @@ supabase
 
 ---
 
-## Suggested Order of Work
+## Completed
 
-```
-Phase 1 (foundation) → Phase 2 (APIs) → Phase 4.2 (onboarding gate)
-→ Phase 3 (real-time) → Phase 4 (polish) → Phase 5 (deploy)
-```
+- [x] Phase 1 — Database & Auth Foundation (Supabase + Prisma + NextAuth + Google OAuth)
+- [x] Phase 2.1 — `GET /api/user/me`, `PATCH /api/user/onboarding`
+- [x] Phase 2.2 — `GET /api/surfers` with real DB data and client-side filters
+- [x] Phase 2.3 — `GET/POST /api/messages/[userId]`, `GET /api/conversations`
+- [x] Phase 4.2 — Onboarding gate via `(protected)` route group
+- [x] Full UI overhaul — deep ocean dark theme, Syne + DM Sans, grain textures, mobile bottom nav
+- [x] Seed script (`yarn seed`) for test users
 
-Phases 1 and 2 unlock everything else. Do those first.
+## Next Up
+
+Phase 5 feature backlog — start with 5.1 (notification badge), then work down the list.

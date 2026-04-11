@@ -8,7 +8,7 @@ import OnboardingShell from '@/components/OnboardingShell'
 const conditions = [
   'Small waves (1-3ft)',
   'Medium waves (3-6ft)',
-  'Large waves (6ft+)',
+  'Big waves (6ft+)',
   'Beach breaks',
   'Point breaks',
   'Reef breaks',
