@@ -1,9 +1,21 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSession } from 'next-auth/react'
 import { Waves, MapPin, Ruler, Phone, Calendar, PenLine } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+
+interface UserProfile {
+  name: string | null
+  email: string | null
+  image: string | null
+  phone: string | null
+  age: number | null
+  abilityLevel: string | null
+  boardFeet: number | null
+  boardInches: number | null
+  location: string | null
+  surfConditions: string[]
+}
 
 const levelStyle: Record<string, { dot: string; text: string; bg: string }> = {
   beginner:     { dot: '#34d399', text: 'text-emerald-400', bg: 'oklch(0.76 0.175 165 / 0.12)' },
@@ -13,37 +25,37 @@ const levelStyle: Record<string, { dot: string; text: string; bg: string }> = {
 }
 
 export default function ProfilePage() {
-  const { data: session } = useSession()
-  const [profile, setProfile] = useState({
-    mobile: '', age: '', location: '', abilityLevel: '',
-    boardFeet: '', boardInches: '', surfConditions: [] as string[],
-  })
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setProfile({
-      mobile:         localStorage.getItem('onboarding_mobile') || '',
-      age:            localStorage.getItem('onboarding_age') || '',
-      location:       localStorage.getItem('onboarding_location') || '',
-      abilityLevel:   localStorage.getItem('onboarding_abilityLevel') || '',
-      boardFeet:      localStorage.getItem('onboarding_boardFeet') || '',
-      boardInches:    localStorage.getItem('onboarding_boardInches') || '',
-      surfConditions: JSON.parse(localStorage.getItem('onboarding_surfConditions') || '[]'),
-    })
+    fetch('/api/user/me')
+      .then(r => r.json())
+      .then(data => { setProfile(data); setLoading(false) })
+      .catch(() => setLoading(false))
   }, [])
 
-  const name     = session?.user?.name ?? 'Surfer'
-  const image    = session?.user?.image ?? undefined
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+      </div>
+    )
+  }
+
+  const name     = profile?.name ?? 'Surfer'
+  const image    = profile?.image ?? undefined
   const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-  const level    = profile.abilityLevel.toLowerCase()
+  const level    = (profile?.abilityLevel ?? '').toLowerCase()
   const lStyle   = levelStyle[level]
-  const boardSize = profile.boardFeet
-    ? `${profile.boardFeet}'${String(profile.boardInches || '0').padStart(2, '0')}"`
+  const boardSize = profile?.boardFeet
+    ? `${profile.boardFeet}'${String(profile.boardInches ?? 0).padStart(2, '0')}"`
     : null
 
   const stats = [
-    boardSize           ? { icon: Ruler,    label: 'Board',      value: boardSize }                         : null,
-    profile.age         ? { icon: Calendar, label: 'Age',        value: profile.age }                       : null,
-    profile.surfConditions.length > 0 ? { icon: Waves, label: 'Conditions', value: String(profile.surfConditions.length) } : null,
+    boardSize              ? { icon: Ruler,    label: 'Board',      value: boardSize }                                          : null,
+    profile?.age           ? { icon: Calendar, label: 'Age',        value: String(profile.age) }                               : null,
+    (profile?.surfConditions.length ?? 0) > 0 ? { icon: Waves, label: 'Conditions', value: String(profile!.surfConditions.length) } : null,
   ].filter(Boolean) as { icon: React.ElementType; label: string; value: string }[]
 
   return (
@@ -58,7 +70,6 @@ export default function ProfilePage() {
           <div className="h-28 relative overflow-hidden">
             <div className="absolute inset-0"
                  style={{ background: 'linear-gradient(135deg, oklch(0.76 0.175 192 / 0.25) 0%, oklch(0.76 0.175 230 / 0.1) 50%, oklch(0.13 0.022 248 / 0) 100%)' }} />
-            {/* Decorative lines */}
             <svg className="absolute inset-0 w-full h-full opacity-10" viewBox="0 0 400 112" fill="none" preserveAspectRatio="none">
               <path d="M0 60 Q100 20 200 60 T400 60" stroke="oklch(0.76 0.175 192)" strokeWidth="1" fill="none" />
               <path d="M0 80 Q100 40 200 80 T400 80" stroke="oklch(0.76 0.175 192)" strokeWidth="0.5" fill="none" />
@@ -83,8 +94,8 @@ export default function ProfilePage() {
 
             {/* Name + email */}
             <h1 className="font-[family-name:var(--font-syne)] font-700 text-2xl tracking-tight text-foreground leading-tight">{name}</h1>
-            {session?.user?.email && (
-              <p className="text-[13px] text-muted-foreground mt-0.5 font-300">{session.user.email}</p>
+            {profile?.email && (
+              <p className="text-[13px] text-muted-foreground mt-0.5 font-300">{profile.email}</p>
             )}
 
             {/* Badges */}
@@ -93,10 +104,10 @@ export default function ProfilePage() {
                 <span className={`flex items-center gap-1.5 text-[11px] font-[family-name:var(--font-syne)] font-600 tracking-[0.08em] uppercase px-3 py-1.5 rounded-full ${lStyle.text}`}
                       style={{ background: lStyle.bg }}>
                   <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: lStyle.dot }} />
-                  {profile.abilityLevel}
+                  {profile?.abilityLevel}
                 </span>
               )}
-              {profile.location && (
+              {profile?.location && (
                 <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground px-3 py-1.5 rounded-full border border-border/50 font-300"
                       style={{ background: 'oklch(0.16 0.02 248)' }}>
                   <MapPin className="h-3 w-3 shrink-0" />
@@ -122,12 +133,12 @@ export default function ProfilePage() {
         )}
 
         {/* ── Surf conditions ── */}
-        {profile.surfConditions.length > 0 && (
+        {(profile?.surfConditions.length ?? 0) > 0 && (
           <div className="rounded-2xl border border-border/60 p-5 grain"
                style={{ background: 'linear-gradient(160deg, oklch(0.13 0.022 248) 0%, oklch(0.10 0.018 252) 100%)' }}>
             <p className="font-[family-name:var(--font-syne)] font-600 text-[10px] tracking-[0.16em] uppercase text-muted-foreground mb-3.5">Surf Conditions</p>
             <div className="flex flex-wrap gap-2">
-              {profile.surfConditions.map(c => (
+              {profile!.surfConditions.map(c => (
                 <span key={c} className="text-[11px] font-[family-name:var(--font-syne)] font-600 px-3 py-1.5 rounded-full"
                       style={{ background: 'oklch(0.76 0.175 192 / 0.1)', color: 'oklch(0.76 0.175 192)', border: '1px solid oklch(0.76 0.175 192 / 0.2)' }}>
                   {c}
@@ -138,7 +149,7 @@ export default function ProfilePage() {
         )}
 
         {/* ── Contact ── */}
-        {profile.mobile && (
+        {profile?.phone && (
           <div className="rounded-2xl border border-border/60 p-5 grain"
                style={{ background: 'linear-gradient(160deg, oklch(0.13 0.022 248) 0%, oklch(0.10 0.018 252) 100%)' }}>
             <p className="font-[family-name:var(--font-syne)] font-600 text-[10px] tracking-[0.16em] uppercase text-muted-foreground mb-3.5">Contact</p>
@@ -147,13 +158,13 @@ export default function ProfilePage() {
                 <Phone className="h-3.5 w-3.5" />
                 <span className="text-sm font-300">Mobile</span>
               </div>
-              <span className="text-sm font-[family-name:var(--font-syne)] font-600 text-foreground">{profile.mobile}</span>
+              <span className="text-sm font-[family-name:var(--font-syne)] font-600 text-foreground">{profile.phone}</span>
             </div>
           </div>
         )}
 
         {/* ── Empty state ── */}
-        {!profile.location && !profile.abilityLevel && (
+        {!profile?.location && !profile?.abilityLevel && (
           <div className="rounded-2xl border border-border/60 p-12 text-center grain"
                style={{ background: 'linear-gradient(160deg, oklch(0.13 0.022 248) 0%, oklch(0.10 0.018 252) 100%)' }}>
             <Waves className="h-8 w-8 mx-auto mb-4" style={{ color: 'oklch(0.76 0.175 192 / 0.3)' }} />
