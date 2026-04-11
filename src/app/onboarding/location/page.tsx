@@ -59,26 +59,26 @@ export default function LocationOnboarding() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-md border">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-semibold mb-2">Where do you surf?</h1>
-          <p className="text-gray-600">Select your primary surf location</p>
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
+      <div className="max-w-4xl w-full bg-card/50 backdrop-blur-sm p-8 rounded-3xl shadow-2xl border border-border/50">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">Where do you surf?</h1>
+          <p className="text-muted-foreground">Select your primary surf location</p>
         </div>
         
-        <div className="mb-6">
+        <div className="mb-8">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-gray-600">Step 4 of 7</span>
-            <span className="text-sm text-gray-600">Location</span>
+            <span className="text-sm text-muted-foreground">Step 4 of 7</span>
+            <span className="text-sm text-muted-foreground">Location</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-blue-600 h-2 rounded-full" style={{ width: '57.1%' }}></div>
+          <div className="w-full bg-secondary rounded-full h-2">
+            <div className="bg-primary h-2 rounded-full" style={{ width: '57.1%' }}></div>
           </div>
         </div>
 
         {/* Map Container */}
         <div className="mb-6">
-          <div className="relative bg-blue-50 border-2 border-blue-200 rounded-lg p-4 h-96">
+          <div className="relative bg-secondary/30 border-2 border-border rounded-lg p-4 h-96">
             <GoogleMap
               locations={surfLocations}
               selectedLocation={selectedLocation}
@@ -86,16 +86,16 @@ export default function LocationOnboarding() {
             />
             
             {/* Map Legend */}
-            <div className="absolute bottom-4 left-4 bg-white px-3 py-2 rounded-lg shadow-lg z-10">
-              <div className="text-sm font-medium text-gray-700 mb-1">Portugal Surf Spots</div>
-              <div className="text-xs text-gray-600">Click on a pin to select</div>
+            <div className="absolute bottom-4 left-4 bg-card px-3 py-2 rounded-lg shadow-lg z-10 border border-border">
+              <div className="text-sm font-medium text-foreground mb-1">Portugal Surf Spots</div>
+              <div className="text-xs text-muted-foreground">Click on a pin to select</div>
             </div>
           </div>
         </div>
 
         {/* Location List */}
         <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-3">Available Locations:</h3>
+          <h3 className="text-lg font-semibold mb-3 text-foreground">Available Locations:</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {surfLocations.map((location) => (
               <button
@@ -103,12 +103,12 @@ export default function LocationOnboarding() {
                 onClick={() => handleLocationSelect(location)}
                 className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
                   selectedLocation?.id === location.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-primary bg-primary/20'
+                    : 'border-border hover:border-primary/50 bg-card/30'
                 }`}
               >
-                <div className="font-medium text-gray-900">{location.name}</div>
-                <div className="text-sm text-gray-600 mt-1">{location.description}</div>
+                <div className="font-medium text-foreground">{location.name}</div>
+                <div className="text-sm text-muted-foreground mt-1">{location.description}</div>
               </button>
             ))}
           </div>
@@ -116,19 +116,19 @@ export default function LocationOnboarding() {
 
         {/* Selected Location Display */}
         {selectedLocation && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="mb-6 p-4 bg-primary/20 border border-primary rounded-lg">
             <div className="flex items-center">
-              <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+              <div className="w-3 h-3 bg-primary rounded-full mr-3"></div>
               <div>
-                <div className="font-medium text-green-800">Selected: {selectedLocation.name}</div>
-                <div className="text-sm text-green-600">{selectedLocation.description}</div>
+                <div className="font-medium text-foreground">Selected: {selectedLocation.name}</div>
+                <div className="text-sm text-muted-foreground">{selectedLocation.description}</div>
               </div>
             </div>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Button type="submit" className="w-full" disabled={!selectedLocation}>
+          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" style={{ padding: '8px 32px' }} disabled={!selectedLocation}>
             Continue
           </Button>
         </form>

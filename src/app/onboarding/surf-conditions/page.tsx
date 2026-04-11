@@ -40,20 +40,20 @@ export default function SurfConditionsOnboarding() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-md border">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-semibold mb-2">What conditions do you surf?</h1>
-          <p className="text-gray-600">Select all that apply</p>
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <div className="max-w-md w-full bg-card/50 backdrop-blur-sm p-8 rounded-3xl shadow-2xl border border-border/50">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">What conditions do you surf?</h1>
+          <p className="text-muted-foreground">Select all that apply</p>
         </div>
         
-        <div className="mb-6">
+        <div className="mb-8">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-gray-600">Step 5 of 7</span>
-            <span className="text-sm text-gray-600">Surf Conditions</span>
+            <span className="text-sm text-muted-foreground">Step 5 of 7</span>
+            <span className="text-sm text-muted-foreground">Surf Conditions</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-blue-600 h-2 rounded-full" style={{ width: '71.4%' }}></div>
+          <div className="w-full bg-secondary rounded-full h-2">
+            <div className="bg-primary h-2 rounded-full" style={{ width: '71.4%' }}></div>
           </div>
         </div>
 
@@ -66,15 +66,15 @@ export default function SurfConditionsOnboarding() {
                 onClick={() => handleConditionToggle(condition)}
                 className={`w-full p-3 text-left rounded-lg border transition-colors ${
                   selectedConditions.includes(condition)
-                    ? 'bg-blue-50 border-blue-500 text-blue-700'
-                    : 'bg-white border-gray-200 hover:border-gray-300'
+                    ? 'bg-primary/20 border-primary text-foreground'
+                    : 'bg-card/30 border-border hover:border-primary/50 text-foreground'
                 }`}
               >
                 {condition}
               </button>
             ))}
           </div>
-          <Button type="submit" className="w-full">Continue</Button>
+          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" style={{ padding: '8px 32px' }}>Continue</Button>
         </form>
       </div>
     </div>
