@@ -234,3 +234,5 @@ supabase
 - [ ] **6.5 Multiple profile photos** — upload and manage photos (requires Supabase Storage, unblocked by 6.4)
 - [ ] **6.6 Email/password auth** — credential sign-up with bcrypt via NextAuth `CredentialsProvider`
 - [ ] **6.7 Expand surf spots** — replace 3 hardcoded Portuguese spots with a searchable DB table
+- [ ] **6.8 Beginner/curious onboarding path** — onboarding assumes surf knowledge; add a "I'm a beginner / just curious" option that skips or simplifies ability level, board size, and conditions steps
+- [ ] **6.9 Account deletion** — no way for users to delete their account; add a delete option on the profile page that removes all their data

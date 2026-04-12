@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Waves, MapPin, Ruler, Phone, Calendar, PenLine, Check, X, ChevronDown } from 'lucide-react'
+import { Waves, MapPin, Ruler, Phone, Calendar, PenLine, Check, X, ChevronDown, LogOut } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { signOut } from 'next-auth/react'
 
 interface UserProfile {
   name: string | null
@@ -207,7 +208,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-2xl mx-auto px-6 sm:px-8 lg:px-10 py-8 lg:py-10 space-y-4">
+      <div className="max-w-2xl mx-auto px-6 sm:px-8 py-8 lg:py-10 space-y-4">
 
         {/* ── Hero card ── */}
         <div className="relative rounded-2xl overflow-hidden border border-border/60 grain"
@@ -235,6 +236,14 @@ export default function ProfilePage() {
             <h1 className="font-[family-name:var(--font-syne)] font-700 text-2xl tracking-tight text-foreground leading-tight">{name}</h1>
             {profile?.email && (
               <p className="text-[13px] text-muted-foreground mt-0.5 font-300">{profile.email}</p>
+            )}
+            {profile?.surfStatus && (
+              <div className="flex items-center gap-2 mt-2">
+                <span className="w-2 h-2 rounded-full shrink-0 animate-pulse" style={{ background: 'oklch(0.76 0.175 192)' }} />
+                <span className="text-sm font-[family-name:var(--font-syne)] font-600" style={{ color: 'oklch(0.76 0.175 192)' }}>
+                  {profile.surfStatus}
+                </span>
+              </div>
             )}
 
             <div className="flex flex-wrap gap-2 mt-4">
@@ -275,7 +284,7 @@ export default function ProfilePage() {
              style={{ background: 'linear-gradient(160deg, oklch(0.13 0.022 248) 0%, oklch(0.10 0.018 252) 100%)' }}>
           <div className="flex items-center justify-between mb-3.5">
             <p className="font-[family-name:var(--font-syne)] font-600 text-[10px] tracking-[0.16em] uppercase text-muted-foreground">
-              Status
+              {profile?.surfStatus ? 'Status' : 'Set your status'}
             </p>
             {profile?.surfStatus && (
               <button
@@ -625,6 +634,18 @@ export default function ProfilePage() {
               </button>
             </div>
           )}
+        </div>
+
+        {/* ── Sign out (mobile only) ── */}
+        <div className="md:hidden pb-2">
+          <button
+            onClick={() => signOut({ callbackUrl: '/login' })}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-border/60 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            style={{ background: 'linear-gradient(160deg, oklch(0.13 0.022 248) 0%, oklch(0.10 0.018 252) 100%)' }}
+          >
+            <LogOut className="h-4 w-4" />
+            Sign out
+          </button>
         </div>
 
       </div>

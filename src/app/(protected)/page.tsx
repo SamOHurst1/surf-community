@@ -78,8 +78,14 @@ export default function DiscoverPage() {
       })
     }
     if (activeFilter === 'conditions') {
-      const myConds = new Set(myProfile?.surfConditions ?? [])
-      return surfers.filter(s => s.surfConditions.some(c => myConds.has(c)))
+      const myConds = myProfile?.surfConditions ?? []
+      if (myConds.length === 0) return []
+      const myCondsSet = new Set(myConds)
+      const threshold = Math.ceil(myConds.length / 2)
+      return surfers.filter(s => {
+        const matches = s.surfConditions.filter(c => myCondsSet.has(c)).length
+        return matches >= threshold
+      })
     }
     return surfers
   })()
@@ -162,7 +168,7 @@ export default function DiscoverPage() {
                   onClick={() => viewProfile(surfer)}
                 >
                   {/* Photo / Avatar */}
-                  <div className="relative overflow-hidden" style={{ height: i === 0 ? '17rem' : '14rem' }}>
+                  <div className="relative overflow-hidden" style={{ height: '14rem' }}>
                     {surfer.image ? (
                       <img
                         src={surfer.image}
