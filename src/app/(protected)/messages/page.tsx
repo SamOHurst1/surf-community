@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { Send, ArrowLeft, ExternalLink } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { supabase } from '@/lib/supabase'
 
 interface Conversation {
   userId: string
@@ -30,6 +32,7 @@ function fmt(ts: string) {
 
 export default function MessagesPage() {
   const searchParams                  = useSearchParams()
+  const { data: session }             = useSession()
   const [convs, setConvs]            = useState<Conversation[]>([])
   const [selected, setSelected]      = useState<Conversation | null>(null)
   const [messages, setMessages]      = useState<Message[]>([])
@@ -37,13 +40,81 @@ export default function MessagesPage() {
   const [sending, setSending]        = useState(false)
   const [loadingMsgs, setLoadingMsgs] = useState(false)
   const bottomRef                    = useRef<HTMLDivElement>(null)
+  const selectedRef                  = useRef<Conversation | null>(null)
 
-  // Load conversation list
+  // Keep selectedRef in sync so the polling interval can read it without a stale closure
+  useEffect(() => { selectedRef.current = selected }, [selected])
+
+  // Load conversation list + poll for updates every 5s
   useEffect(() => {
-    fetch('/api/conversations')
-      .then(r => r.json())
-      .then(data => setConvs(Array.isArray(data) ? data : []))
+    const fetchConvs = () =>
+      fetch('/api/conversations')
+        .then(r => r.json())
+        .then(data => {
+          if (!Array.isArray(data)) return
+          setConvs(prev => {
+            // Preserve any locally-added stub conversations (userId not yet in DB list)
+            const incoming = data as Conversation[]
+            const incomingIds = new Set(incoming.map(c => c.userId))
+            const stubs = prev.filter(c => !incomingIds.has(c.userId))
+            return [...stubs, ...incoming]
+          })
+        })
+        .catch(() => {})
+
+    fetchConvs()
+    const interval = setInterval(fetchConvs, 5_000)
+    return () => clearInterval(interval)
   }, [])
+
+  // Supabase Realtime — subscribe to new messages sent to the current user
+  useEffect(() => {
+    const myId = session?.user?.id
+    if (!myId) return
+
+    const channel = supabase
+      .channel('incoming-messages')
+      .on(
+        'postgres_changes',
+        {
+          event:  'INSERT',
+          schema: 'public',
+          table:  'Message',
+          filter: `receiverId=eq.${myId}`,
+        },
+        payload => {
+          const row = payload.new as { id: string; body: string; senderId: string; createdAt: string }
+          const conv = selectedRef.current
+
+          // Append to open thread if it's from the active conversation
+          if (conv && row.senderId === conv.userId) {
+            const msg: Message = {
+              id:        row.id,
+              content:   row.body,
+              sender:    'them',
+              timestamp: row.createdAt,
+            }
+            setMessages(prev => {
+              if (prev.find(m => m.id === row.id)) return prev
+              setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 30)
+              return [...prev, msg]
+            })
+            // Mark as read immediately since the thread is open
+            setConvs(p => p.map(c => c.userId === row.senderId ? { ...c, unread: 0, lastMessage: row.body, timestamp: row.createdAt } : c))
+          } else {
+            // Update conversation list preview + unread badge
+            setConvs(p => p.map(c =>
+              c.userId === row.senderId
+                ? { ...c, unread: c.unread + 1, lastMessage: row.body, timestamp: row.createdAt }
+                : c
+            ))
+          }
+        }
+      )
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [session?.user?.id])
 
   // Handle ?userId= from discover page — auto-open that conversation
   useEffect(() => {

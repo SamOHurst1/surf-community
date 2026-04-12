@@ -220,7 +220,7 @@ supabase
 
 ## Next Up
 
-- [ ] **6.1 Real-time messages** — add polling (30s interval) or Supabase Realtime subscription so new messages appear without refreshing the conversation
+- [x] **6.1 Real-time messages** — Supabase Realtime websocket subscription on the Message table, instant delivery — add polling (30s interval) or Supabase Realtime subscription so new messages appear without refreshing the conversation
 - [ ] **6.2 Deploy to Vercel** — connect GitHub repo, add all env vars (Supabase, NextAuth, Google Maps, OAuth), set `NEXTAUTH_URL` to production domain
 - [ ] **6.3 Supabase production setup** — enable row-level security (RLS) policies, set up Storage bucket (public read / authenticated write) for profile photos
 - [ ] **6.4 Rotate secrets** — generate strong `NEXTAUTH_SECRET` for production, use separate OAuth app credentials for prod vs. dev
