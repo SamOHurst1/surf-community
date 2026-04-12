@@ -211,22 +211,26 @@ supabase
 ## Completed
 
 - [x] Phase 1 — Database & Auth Foundation (Supabase + Prisma + NextAuth + Google OAuth)
-- [x] Phase 2.1 — `GET /api/user/me`, `PATCH /api/user/onboarding`
+- [x] Phase 2.1 — `GET /api/user/me`, `PATCH /api/user/me` (full profile editing)
 - [x] Phase 2.2 — `GET /api/surfers` with real DB data and client-side filters
 - [x] Phase 2.3 — `GET/POST /api/messages/[userId]`, `GET /api/conversations`
 - [x] Phase 4.2 — Onboarding gate via `(protected)` route group
 - [x] Full UI overhaul — deep ocean dark theme, Syne + DM Sans, grain textures, mobile bottom nav
 - [x] Seed script (`yarn seed`) for test users
+- [x] Message notification badge — Realtime-powered, updates instantly on any page
+- [x] Edit mobile number + phone visibility toggle on profile page
+- [x] Public surfer profiles at `/surfers/[id]` — click from discover or messages header
+- [x] Edit surf stats — ability level, board size, surf conditions, location
+- [x] Surf status — preset + custom, shown on discover cards and public profiles
+- [x] Fully event-driven messaging — Supabase Realtime for thread, conversation list, and navbar badge (no polling)
+- [x] Google Maps fixed on `/onboarding/location` — API key and billing configured
+- [x] Dead file removed (`onboarding/mobile/mobile.tsx`)
 
 ## Next Up
 
-- [x] **6.1 Real-time messages** — Supabase Realtime websocket subscription on the Message table, instant delivery — add polling (30s interval) or Supabase Realtime subscription so new messages appear without refreshing the conversation
-- [ ] **6.2 Deploy to Vercel** — connect GitHub repo, add all env vars (Supabase, NextAuth, Google Maps, OAuth), set `NEXTAUTH_URL` to production domain
-- [ ] **6.3 Supabase production setup** — enable row-level security (RLS) policies, set up Storage bucket (public read / authenticated write) for profile photos
-- [ ] **6.4 Rotate secrets** — generate strong `NEXTAUTH_SECRET` for production, use separate OAuth app credentials for prod vs. dev
-- [ ] **6.5 Multiple profile photos** — upload and manage photos once Supabase Storage is configured (unblocked by 6.3)
-- [ ] **6.6 Email/password auth** — credential sign-up with bcrypt via NextAuth `CredentialsProvider` (currently Google OAuth only)
-- [ ] **6.7 Expand surf spots** — replace hardcoded spots with a searchable `SurfSpot` DB table, let users pick from it during onboarding and profile edit
-- [ ] **6.8 Fix profile Edit button** — the "Edit" button on the hero card currently does nothing; wire it up or remove it
-- [ ] **6.9 Remove dead file** — delete `src/app/onboarding/mobile/mobile.tsx` (unused duplicate of the mobile onboarding step)
-- [ ] **6.10 Fix `/onboarding/location` map** — Google Maps component not rendering correctly on the location onboarding page, throws errors in the console
+- [ ] **6.2 Deploy to Vercel** — connect GitHub repo, add all env vars, set `NEXTAUTH_URL` to production domain
+- [ ] **6.3 Post-deploy: add production OAuth redirect URI** — add Vercel domain to Google Cloud Console authorized redirect URIs
+- [ ] **6.4 Supabase production setup** — run `GRANT SELECT ON "Message" TO anon;` in SQL editor, set up Storage bucket for photos
+- [ ] **6.5 Multiple profile photos** — upload and manage photos (requires Supabase Storage, unblocked by 6.4)
+- [ ] **6.6 Email/password auth** — credential sign-up with bcrypt via NextAuth `CredentialsProvider`
+- [ ] **6.7 Expand surf spots** — replace 3 hardcoded Portuguese spots with a searchable DB table

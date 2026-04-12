@@ -42,18 +42,28 @@ export default function MessagesPage() {
   const bottomRef                    = useRef<HTMLDivElement>(null)
   const selectedRef                  = useRef<Conversation | null>(null)
 
-  // Keep selectedRef in sync so the polling interval can read it without a stale closure
+  // Keep selectedRef in sync — also updated synchronously in openConv below
   useEffect(() => { selectedRef.current = selected }, [selected])
 
-  // Load conversation list + poll for updates every 5s
+  // Load conversation list on mount
   useEffect(() => {
-    const fetchConvs = () =>
+    fetch('/api/conversations')
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setConvs(data) })
+      .catch(() => {})
+  }, [])
+
+  // Supabase Realtime — subscribe to new messages sent to the current user
+  useEffect(() => {
+    const myId = session?.user?.id
+    if (!myId) return
+
+    const refreshConvs = () =>
       fetch('/api/conversations')
         .then(r => r.json())
         .then(data => {
           if (!Array.isArray(data)) return
           setConvs(prev => {
-            // Preserve any locally-added stub conversations (userId not yet in DB list)
             const incoming = data as Conversation[]
             const incomingIds = new Set(incoming.map(c => c.userId))
             const stubs = prev.filter(c => !incomingIds.has(c.userId))
@@ -61,16 +71,6 @@ export default function MessagesPage() {
           })
         })
         .catch(() => {})
-
-    fetchConvs()
-    const interval = setInterval(fetchConvs, 5_000)
-    return () => clearInterval(interval)
-  }, [])
-
-  // Supabase Realtime — subscribe to new messages sent to the current user
-  useEffect(() => {
-    const myId = session?.user?.id
-    if (!myId) return
 
     const channel = supabase
       .channel('incoming-messages')
@@ -83,31 +83,35 @@ export default function MessagesPage() {
           filter: `receiverId=eq.${myId}`,
         },
         payload => {
-          const row = payload.new as { id: string; body: string; senderId: string; createdAt: string }
+          // Handle both camelCase and lowercase column names from Postgres
+          const row = payload.new as Record<string, unknown>
+          const senderId = (row.senderId ?? row.senderid) as string | undefined
+
+
+          if (!senderId) return
+
+          // Notify navbar badge
+          window.dispatchEvent(new Event('new-message'))
+
           const conv = selectedRef.current
 
-          // Append to open thread if it's from the active conversation
-          if (conv && row.senderId === conv.userId) {
-            const msg: Message = {
-              id:        row.id,
-              content:   row.body,
-              sender:    'them',
-              timestamp: row.createdAt,
-            }
-            setMessages(prev => {
-              if (prev.find(m => m.id === row.id)) return prev
-              setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 30)
-              return [...prev, msg]
-            })
-            // Mark as read immediately since the thread is open
-            setConvs(p => p.map(c => c.userId === row.senderId ? { ...c, unread: 0, lastMessage: row.body, timestamp: row.createdAt } : c))
-          } else {
-            // Update conversation list preview + unread badge
-            setConvs(p => p.map(c =>
-              c.userId === row.senderId
-                ? { ...c, unread: c.unread + 1, lastMessage: row.body, timestamp: row.createdAt }
-                : c
-            ))
+          // Always refresh conversation list
+          refreshConvs()
+
+          if (conv && senderId === conv.userId) {
+            // Active conversation — re-fetch thread to get the real message object
+            fetch(`/api/messages/${conv.userId}`)
+              .then(r => r.json())
+              .then(data => {
+                if (!Array.isArray(data)) return
+                setMessages(prev => {
+                  const existingIds = new Set(prev.map(m => m.id))
+                  const newMsgs = (data as Message[]).filter(m => !existingIds.has(m.id))
+                  if (newMsgs.length === 0) return prev
+                  setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 30)
+                  return [...prev, ...newMsgs]
+                })
+              })
           }
         }
       )
@@ -152,6 +156,7 @@ export default function MessagesPage() {
   }, [searchParams])
 
   const openConv = useCallback((conv: Conversation) => {
+    selectedRef.current = conv   // sync immediately so Realtime handler sees it right away
     setSelected(conv)
     setMessages([])
     setLoadingMsgs(true)

@@ -76,7 +76,10 @@ export default function ProfilePage() {
   const [savingStats, setSavingStats]               = useState(false)
 
   // Surf status
-  const [savingStatus, setSavingStatus] = useState(false)
+  const [savingStatus, setSavingStatus]     = useState(false)
+  const [customStatus, setCustomStatus]     = useState('')
+  const [editingCustom, setEditingCustom]   = useState(false)
+  const customInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetch('/api/user/me')
@@ -163,6 +166,19 @@ export default function ProfilePage() {
       body: JSON.stringify({ surfStatus: status }),
     })
     setSavingStatus(false)
+  }
+
+  const saveCustomStatus = async () => {
+    const trimmed = customStatus.trim()
+    if (!trimmed) return
+    setEditingCustom(false)
+    setCustomStatus('')
+    await setStatus(trimmed)
+  }
+
+  const startCustomStatus = () => {
+    setEditingCustom(true)
+    setTimeout(() => customInputRef.current?.focus(), 30)
   }
 
   if (loading) {
@@ -282,7 +298,7 @@ export default function ProfilePage() {
             </div>
           )}
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mb-3">
             {statusPresets.map(preset => (
               <button
                 key={preset}
@@ -303,6 +319,47 @@ export default function ProfilePage() {
               </button>
             ))}
           </div>
+
+          {/* Custom status input */}
+          {editingCustom ? (
+            <div className="flex items-center gap-2">
+              <input
+                ref={customInputRef}
+                type="text"
+                value={customStatus}
+                onChange={e => setCustomStatus(e.target.value.slice(0, 80))}
+                onKeyDown={e => { if (e.key === 'Enter') saveCustomStatus(); if (e.key === 'Escape') { setEditingCustom(false); setCustomStatus('') } }}
+                placeholder="Write a custom status…"
+                maxLength={80}
+                className="flex-1 text-sm text-foreground bg-transparent border-b focus:outline-none placeholder:text-muted-foreground/40"
+                style={{ borderColor: 'oklch(0.76 0.175 192 / 0.4)' }}
+              />
+              <button
+                onClick={saveCustomStatus}
+                disabled={!customStatus.trim() || savingStatus}
+                className="p-1.5 rounded-lg transition-colors disabled:opacity-40"
+                style={{ background: 'oklch(0.76 0.175 192 / 0.15)', color: 'oklch(0.76 0.175 192)' }}
+              >
+                <Check className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => { setEditingCustom(false); setCustomStatus('') }}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors"
+                style={{ background: 'oklch(0.18 0.022 248)' }}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={startCustomStatus}
+              disabled={savingStatus}
+              className="text-[11px] font-[family-name:var(--font-syne)] font-600 px-3 py-1.5 rounded-full border transition-all duration-150 disabled:opacity-40"
+              style={{ background: 'oklch(0.16 0.02 248)', color: 'oklch(0.55 0.02 240)', borderColor: 'oklch(0.22 0.02 245)' }}
+            >
+              + Custom
+            </button>
+          )}
         </div>
 
         {/* ── Surf details (editable) ── */}

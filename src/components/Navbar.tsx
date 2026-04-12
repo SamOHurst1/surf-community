@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import { Compass, MessageCircle, User, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { supabase } from '@/lib/supabase';
 
 const navItems = [
   { href: '/',          label: 'Discover',  icon: Compass },
@@ -22,6 +23,9 @@ export default function Navbar() {
   useEffect(() => {
     if (!session?.user) return;
 
+    const myId = (session.user as { id?: string }).id
+    if (!myId) return;
+
     const fetchUnread = () => {
       fetch('/api/messages/unread')
         .then(r => r.json())
@@ -30,11 +34,27 @@ export default function Navbar() {
     };
 
     fetchUnread();
-    // Clear badge when on messages page
     if (pathname === '/messages') setUnread(0);
 
     const interval = setInterval(fetchUnread, 30_000);
-    return () => clearInterval(interval);
+
+    // Realtime subscription — increment badge instantly on new message
+    const channel = supabase
+      .channel('navbar-unread')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'Message', filter: `receiverId=eq.${myId}` },
+        () => {
+          if (pathname === '/messages') return
+          setUnread(n => n + 1)
+        }
+      )
+      .subscribe()
+
+    return () => {
+      clearInterval(interval)
+      supabase.removeChannel(channel)
+    }
   }, [session, pathname]);
 
   return (
