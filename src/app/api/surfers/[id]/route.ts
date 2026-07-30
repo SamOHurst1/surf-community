@@ -36,6 +36,10 @@ export async function GET(
       surfConditions: {
         select: { condition: true },
       },
+      photos: {
+        orderBy: { order: 'asc' as const },
+        select: { id: true, url: true, isPrimary: true, order: true },
+      },
     },
   })
 
@@ -46,7 +50,8 @@ export async function GET(
   return NextResponse.json({
     id:             user.id,
     name:           user.name ?? 'Surfer',
-    image:          user.image,
+    image:          user.photos.find(p => p.isPrimary)?.url ?? user.photos[0]?.url ?? user.image,
+    photos:         user.photos,
     phone:          user.phoneVisible ? user.phone : null,
     age:            user.age,
     abilityLevel:   user.abilityLevel,

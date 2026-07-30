@@ -1,13 +1,21 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { MessageCircle, MapPin, Compass, Waves, Target, Users } from 'lucide-react'
+import { MessageCircle, MapPin, Compass, Waves, Target, Users, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+
+interface ProfilePhoto {
+  id: string
+  url: string
+  isPrimary: boolean
+  order: number
+}
 
 interface Surfer {
   id: string
   name: string
   image: string | null
+  photos: ProfilePhoto[]
   location: string | null
   abilityLevel: string
   boardFeet: number | null
@@ -54,6 +62,7 @@ export default function DiscoverPage() {
   const [myProfile, setMyProfile]     = useState<{ location: string | null; abilityLevel: string | null; surfConditions: string[] } | null>(null)
   const [activeFilter, setActiveFilter] = useState('all')
   const [loading, setLoading]         = useState(true)
+  const [photoIndexes, setPhotoIndexes] = useState<Record<string, number>>({})
 
   useEffect(() => {
     Promise.all([
@@ -157,9 +166,23 @@ export default function DiscoverPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((surfer, i) => {
-              const level    = levelStyle[surfer.abilityLevel.toLowerCase()]
-              const board    = boardSizeLabel(surfer.boardFeet, surfer.boardInches)
-              const initials = surfer.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+              const level      = levelStyle[surfer.abilityLevel.toLowerCase()]
+              const board      = boardSizeLabel(surfer.boardFeet, surfer.boardInches)
+              const initials   = surfer.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+              const photos     = surfer.photos ?? []
+              const photoIdx   = photoIndexes[surfer.id] ?? 0
+              const displayImg = photos.length > 0 ? photos[photoIdx]?.url : surfer.image
+              const hasMulti   = photos.length > 1
+
+              const prevPhoto = (e: React.MouseEvent) => {
+                e.stopPropagation()
+                setPhotoIndexes(prev => ({ ...prev, [surfer.id]: Math.max(0, (prev[surfer.id] ?? 0) - 1) }))
+              }
+              const nextPhoto = (e: React.MouseEvent) => {
+                e.stopPropagation()
+                setPhotoIndexes(prev => ({ ...prev, [surfer.id]: Math.min(photos.length - 1, (prev[surfer.id] ?? 0) + 1) }))
+              }
+
               return (
                 <div
                   key={surfer.id}
@@ -169,9 +192,10 @@ export default function DiscoverPage() {
                 >
                   {/* Photo / Avatar */}
                   <div className="relative overflow-hidden" style={{ height: '14rem' }}>
-                    {surfer.image ? (
+                    {displayImg ? (
                       <img
-                        src={surfer.image}
+                        key={displayImg}
+                        src={displayImg}
                         alt={surfer.name}
                         className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
                       />
@@ -190,6 +214,37 @@ export default function DiscoverPage() {
                     {/* Gradient overlay */}
                     <div className="absolute inset-0"
                          style={{ background: 'linear-gradient(to top, oklch(0.07 0.025 248 / 0.9) 0%, oklch(0.07 0.025 248 / 0.3) 40%, transparent 70%)' }} />
+
+                    {/* Carousel arrows */}
+                    {hasMulti && (
+                      <>
+                        {photoIdx > 0 && (
+                          <button
+                            onClick={prevPhoto}
+                            className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-7 h-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                            style={{ background: 'oklch(0.07 0.025 248 / 0.75)', backdropFilter: 'blur(4px)' }}
+                          >
+                            <ChevronLeft className="h-4 w-4 text-white" />
+                          </button>
+                        )}
+                        {photoIdx < photos.length - 1 && (
+                          <button
+                            onClick={nextPhoto}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-7 h-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                            style={{ background: 'oklch(0.07 0.025 248 / 0.75)', backdropFilter: 'blur(4px)' }}
+                          >
+                            <ChevronRight className="h-4 w-4 text-white" />
+                          </button>
+                        )}
+                        {/* Dot indicators */}
+                        <div className="absolute bottom-14 left-0 right-0 flex justify-center gap-1">
+                          {photos.map((_, di) => (
+                            <span key={di} className="w-1 h-1 rounded-full transition-colors"
+                                  style={{ background: di === photoIdx ? 'white' : 'rgba(255,255,255,0.35)' }} />
+                          ))}
+                        </div>
+                      </>
+                    )}
 
                     {/* Joined chip */}
                     <div className="absolute top-3 right-3">

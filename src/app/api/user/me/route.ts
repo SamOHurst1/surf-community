@@ -30,6 +30,10 @@ export async function GET() {
       surfConditions: {
         select: { condition: true },
       },
+      photos: {
+        orderBy: { order: 'asc' as const },
+        select: { id: true, url: true, isPrimary: true, order: true },
+      },
     },
   })
 
@@ -37,10 +41,12 @@ export async function GET() {
     return NextResponse.json({ error: 'User not found' }, { status: 404 })
   }
 
+  const primaryPhoto = user.photos.find(p => p.isPrimary)?.url ?? user.photos[0]?.url ?? user.image
+
   return NextResponse.json({
     name:           user.name,
     email:          user.email,
-    image:          user.image,
+    image:          primaryPhoto,
     phone:          user.phone,
     age:            user.age,
     abilityLevel:   user.abilityLevel,
@@ -50,6 +56,7 @@ export async function GET() {
     surfConditions: user.surfConditions.map(s => s.condition),
     phoneVisible:   user.phoneVisible,
     surfStatus:     user.surfStatus,
+    photos:         user.photos,
   })
 }
 

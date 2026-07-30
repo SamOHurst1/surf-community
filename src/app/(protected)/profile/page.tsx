@@ -1,9 +1,16 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Waves, MapPin, Ruler, Phone, Calendar, PenLine, Check, X, ChevronDown, LogOut } from 'lucide-react'
+import { Waves, MapPin, Ruler, Phone, Calendar, PenLine, Check, X, ChevronDown, LogOut, Star, Plus, Trash2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { signOut } from 'next-auth/react'
+
+interface ProfilePhoto {
+  id: string
+  url: string
+  isPrimary: boolean
+  order: number
+}
 
 interface UserProfile {
   name: string | null
@@ -18,6 +25,7 @@ interface UserProfile {
   surfConditions: string[]
   phoneVisible: boolean
   surfStatus: string | null
+  photos: ProfilePhoto[]
 }
 
 const levelStyle: Record<string, { dot: string; text: string; bg: string }> = {
@@ -82,16 +90,60 @@ export default function ProfilePage() {
   const [editingCustom, setEditingCustom]   = useState(false)
   const customInputRef = useRef<HTMLInputElement>(null)
 
+  // Photo upload
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const photoInputRef = useRef<HTMLInputElement>(null)
+
   useEffect(() => {
     fetch('/api/user/me')
       .then(r => r.json())
       .then(data => {
-        setProfile(data)
+        setProfile({ ...data, photos: data.photos ?? [] })
         setPhoneValue(data.phone ?? '')
         setLoading(false)
       })
       .catch(() => setLoading(false))
   }, [])
+
+  /* ── Photos ── */
+  const openPhotoPicker = () => photoInputRef.current?.click()
+
+  const uploadPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+    setUploadingPhoto(true)
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await fetch('/api/user/photos', { method: 'POST', body: fd })
+    if (res.ok) {
+      const photo: ProfilePhoto = await res.json()
+      setProfile(p => p ? { ...p, photos: [...p.photos, photo], image: photo.isPrimary ? photo.url : p.image } : p)
+    }
+    setUploadingPhoto(false)
+  }
+
+  const deletePhoto = async (photoId: string) => {
+    await fetch(`/api/user/photos/${photoId}`, { method: 'DELETE' })
+    setProfile(p => {
+      if (!p) return p
+      const remaining = p.photos.filter(ph => ph.id !== photoId)
+      const wasPrimary = p.photos.find(ph => ph.id === photoId)?.isPrimary
+      if (wasPrimary && remaining.length > 0) remaining[0].isPrimary = true
+      const newImage = remaining.find(ph => ph.isPrimary)?.url ?? remaining[0]?.url ?? null
+      return { ...p, photos: remaining, image: newImage }
+    })
+  }
+
+  const setPrimary = async (photoId: string) => {
+    await fetch(`/api/user/photos/${photoId}/primary`, { method: 'PATCH' })
+    setProfile(p => {
+      if (!p) return p
+      const photos = p.photos.map(ph => ({ ...ph, isPrimary: ph.id === photoId }))
+      const newImage = photos.find(ph => ph.isPrimary)?.url ?? p.image
+      return { ...p, photos, image: newImage }
+    })
+  }
 
   /* ── Phone ── */
   const startEditPhone = () => {
@@ -263,6 +315,81 @@ export default function ProfilePage() {
               )}
             </div>
           </div>
+        </div>
+
+        {/* ── Photos ── */}
+        <div className="rounded-2xl border border-border/60 p-5 grain"
+             style={{ background: 'linear-gradient(160deg, oklch(0.13 0.022 248) 0%, oklch(0.10 0.018 252) 100%)' }}>
+          <p className="font-[family-name:var(--font-syne)] font-600 text-[10px] tracking-[0.16em] uppercase text-muted-foreground mb-4">
+            Photos
+          </p>
+          <div className="flex gap-3">
+            {(profile?.photos ?? []).map(photo => (
+              <div key={photo.id} className="relative group/photo flex-1" style={{ maxWidth: '7rem' }}>
+                <img
+                  src={photo.url}
+                  alt=""
+                  className="w-full aspect-square object-cover rounded-xl border border-border/60"
+                />
+                {/* Primary badge */}
+                {photo.isPrimary && (
+                  <span className="absolute top-1.5 left-1.5 flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-[family-name:var(--font-syne)] font-700"
+                        style={{ background: 'oklch(0.76 0.175 192)', color: 'oklch(0.07 0.025 248)' }}>
+                    <Star className="h-2.5 w-2.5 fill-current" />
+                    Main
+                  </span>
+                )}
+                {/* Actions overlay */}
+                <div className="absolute inset-0 rounded-xl flex flex-col items-center justify-center gap-1.5 opacity-0 group-hover/photo:opacity-100 transition-opacity duration-150"
+                     style={{ background: 'oklch(0.07 0.025 248 / 0.7)', backdropFilter: 'blur(4px)' }}>
+                  {!photo.isPrimary && (
+                    <button
+                      onClick={() => setPrimary(photo.id)}
+                      className="flex items-center gap-1 text-[10px] font-[family-name:var(--font-syne)] font-600 px-2 py-1 rounded-lg transition-colors"
+                      style={{ background: 'oklch(0.76 0.175 192 / 0.2)', color: 'oklch(0.76 0.175 192)' }}
+                    >
+                      <Star className="h-2.5 w-2.5" />
+                      Set main
+                    </button>
+                  )}
+                  <button
+                    onClick={() => deletePhoto(photo.id)}
+                    className="flex items-center gap-1 text-[10px] font-[family-name:var(--font-syne)] font-600 px-2 py-1 rounded-lg text-red-400 transition-colors"
+                    style={{ background: 'oklch(0.4 0.15 25 / 0.2)' }}
+                  >
+                    <Trash2 className="h-2.5 w-2.5" />
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {/* Add photo slot */}
+            {(profile?.photos.length ?? 0) < 3 && (
+              <button
+                onClick={openPhotoPicker}
+                disabled={uploadingPhoto}
+                className="flex-1 aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1.5 transition-colors disabled:opacity-40"
+                style={{ borderColor: 'oklch(0.76 0.175 192 / 0.3)', maxWidth: '7rem' }}
+              >
+                {uploadingPhoto ? (
+                  <div className="w-4 h-4 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+                ) : (
+                  <>
+                    <Plus className="h-5 w-5" style={{ color: 'oklch(0.76 0.175 192 / 0.6)' }} />
+                    <span className="text-[9px] font-[family-name:var(--font-syne)] font-600 tracking-[0.06em]"
+                          style={{ color: 'oklch(0.76 0.175 192 / 0.6)' }}>
+                      Add photo
+                    </span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-3 font-300">
+            Up to 3 photos · Tap a photo to set as main or delete · Main photo shows on your discover card
+          </p>
+          <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={uploadPhoto} />
         </div>
 
         {/* ── Stats row ── */}

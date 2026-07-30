@@ -2,13 +2,21 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Waves, MapPin, Ruler, Phone, Calendar, MessageCircle, ArrowLeft } from 'lucide-react'
+import { Waves, MapPin, Ruler, Phone, Calendar, MessageCircle, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+
+interface ProfilePhoto {
+  id: string
+  url: string
+  isPrimary: boolean
+  order: number
+}
 
 interface SurferProfile {
   id: string
   name: string
   image: string | null
+  photos: ProfilePhoto[]
   phone: string | null
   age: number | null
   abilityLevel: string | null
@@ -33,6 +41,7 @@ export default function SurferProfilePage() {
   const [surfer, setSurfer] = useState<SurferProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [photoIdx, setPhotoIdx] = useState(0)
 
   useEffect(() => {
     fetch(`/api/surfers/${id}`)
@@ -60,8 +69,11 @@ export default function SurferProfilePage() {
     )
   }
 
-  const initials = surfer.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-  const level    = levelStyle[(surfer.abilityLevel ?? '').toLowerCase()]
+  const initials   = surfer.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  const level      = levelStyle[(surfer.abilityLevel ?? '').toLowerCase()]
+  const photos     = surfer.photos ?? []
+  const hasMulti   = photos.length > 1
+  const displayImg = photos.length > 0 ? photos[photoIdx]?.url : surfer.image
   const boardSize = surfer.boardFeet
     ? `${surfer.boardFeet}'${String(surfer.boardInches ?? 0).padStart(2, '0')}"`
     : null
@@ -100,13 +112,50 @@ export default function SurferProfilePage() {
 
           <div className="px-5 sm:px-6 pb-6">
             <div className="flex items-end justify-between -mt-12 mb-5">
-              <Avatar className="h-[88px] w-[88px] shadow-xl" style={{ boxShadow: '0 0 0 3px oklch(0.13 0.022 248), 0 0 0 5px oklch(0.76 0.175 192 / 0.25)' }}>
-                <AvatarImage src={surfer.image ?? undefined} />
-                <AvatarFallback className="text-2xl font-[family-name:var(--font-syne)] font-800"
-                                style={{ background: 'oklch(0.76 0.175 192 / 0.15)', color: 'oklch(0.76 0.175 192)' }}>
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
+              {/* Avatar / photo with carousel */}
+              <div className="relative">
+                {displayImg ? (
+                  <div className="relative h-[88px] w-[88px] rounded-full overflow-hidden shadow-xl"
+                       style={{ boxShadow: '0 0 0 3px oklch(0.13 0.022 248), 0 0 0 5px oklch(0.76 0.175 192 / 0.25)' }}>
+                    <img key={displayImg} src={displayImg} alt={surfer.name} className="w-full h-full object-cover" />
+                    {hasMulti && (
+                      <>
+                        {photoIdx > 0 && (
+                          <button onClick={() => setPhotoIdx(i => i - 1)}
+                                  className="absolute left-0 top-0 bottom-0 w-1/2 flex items-center justify-start pl-1"
+                                  style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.3), transparent)' }}>
+                            <ChevronLeft className="h-3 w-3 text-white" />
+                          </button>
+                        )}
+                        {photoIdx < photos.length - 1 && (
+                          <button onClick={() => setPhotoIdx(i => i + 1)}
+                                  className="absolute right-0 top-0 bottom-0 w-1/2 flex items-center justify-end pr-1"
+                                  style={{ background: 'linear-gradient(to left, rgba(0,0,0,0.3), transparent)' }}>
+                            <ChevronRight className="h-3 w-3 text-white" />
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <Avatar className="h-[88px] w-[88px] shadow-xl" style={{ boxShadow: '0 0 0 3px oklch(0.13 0.022 248), 0 0 0 5px oklch(0.76 0.175 192 / 0.25)' }}>
+                    <AvatarFallback className="text-2xl font-[family-name:var(--font-syne)] font-800"
+                                    style={{ background: 'oklch(0.76 0.175 192 / 0.15)', color: 'oklch(0.76 0.175 192)' }}>
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+                {/* Dot indicators below avatar */}
+                {hasMulti && (
+                  <div className="flex justify-center gap-1 mt-1.5">
+                    {photos.map((_, di) => (
+                      <button key={di} onClick={() => setPhotoIdx(di)}
+                              className="w-1.5 h-1.5 rounded-full transition-colors"
+                              style={{ background: di === photoIdx ? 'oklch(0.76 0.175 192)' : 'oklch(0.76 0.175 192 / 0.3)' }} />
+                    ))}
+                  </div>
+                )}
+              </div>
               <button
                 onClick={() => router.push(`/messages?userId=${surfer.id}`)}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-[family-name:var(--font-syne)] font-600 transition-all duration-150"

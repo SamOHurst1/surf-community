@@ -27,6 +27,17 @@ model User {
   sessions           Session[]
   locations          UserLocation[]
   surfConditions     UserSurfCondition[]
+  photos             ProfilePhoto[]
+}
+
+model ProfilePhoto {
+  id        String   @id @default(cuid())
+  userId    String
+  url       String
+  isPrimary Boolean  @default(false)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model UserLocation {

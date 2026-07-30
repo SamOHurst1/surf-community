@@ -33,6 +33,10 @@ export async function GET() {
       surfConditions: {
         select: { condition: true },
       },
+      photos: {
+        orderBy: { order: 'asc' as const },
+        select: { id: true, url: true, isPrimary: true, order: true },
+      },
     },
     orderBy: { createdAt: 'desc' },
   })
@@ -40,7 +44,8 @@ export async function GET() {
   const result = surfers.map(s => ({
     id:             s.id,
     name:           s.name ?? 'Surfer',
-    image:          s.image,
+    image:          s.photos.find(p => p.isPrimary)?.url ?? s.photos[0]?.url ?? s.image,
+    photos:         s.photos,
     phone:          s.phoneVisible ? s.phone : null,
     abilityLevel:   s.abilityLevel ?? '',
     boardFeet:      s.boardFeet,
